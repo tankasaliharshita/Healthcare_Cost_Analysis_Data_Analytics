@@ -1,0 +1,1144 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
+#Goal of the project: 
+
+#1. Predict	people	who	will	spend	a	lot	of	money	on	health	care	next	year	(i.e.,	which	
+#people	will	have	high	healthcare	costs).	
+
+#2. Provide	actionable	insight	to	the	HMO,	in	terms	of	how	to	lower	their	total	health	
+#care	costs,	by	providing	a	specific	recommendation	on	how	to	lower	health	care	
+#costs.
+
+#Hints:
+#1. Make sure you define an attribute ‘expensive’, based on the cost attribute (that is the attribute the team should try to predict).
+# 2. For exploratory work:
+#  - a. Histograms and boxplots of numeric variables are typically useful.
+#  - b. Producing tables of categorical response variables is often helpful.
+  
+#2. Since there is geographic info, you should make some sort of map
+
+#3. Dividing the data in expensive and not-expensive subsets of people and using the grouping 
+  #to visualize other attributes or build predictive models is often helpful.
+    #a. So, for example, Barplots of expensive (vs not expensive) people across different categories is often useful.
+
+#4. Remember to build models for predicting if a person is Expensive
+#5. For your recommendations (in the presentation):
+  # a. Provide a summary covering all of your results in language that is suitable for a
+  #manager to understand. Most managers do not know too much about statistics, so
+  #you probably should not quote terms like “R-squared” or “p-value” but rather
+  #describe your results in plain language.
+  # b. Your presentation should conclude with one substantive actionable
+  #recommendation to the managers.
+  #c. Important: Your recommendation MUST be connected with one or more of your
+  #data science results; it MUST NOT be based on your own personal experience with
+  #health, exercise, etc.
+
+#6. For your interactive shiny app:
+  #a. You should be predicting is someone will be expensive year (i.e., if that person will
+  #be expensive). You need to think about how you define ‘expensive’.
+  #b. You need to make sure that you are reading a prebuilt model (not generating the
+  #model within the shiny app). It is just one model, so pick your best model.
+  #c. You need to be clear, in your output, what was the sensitivity from the new test
+  #data, as well as roughly, how well your team expected your model to perform (with
+  #respect to sensitivity).
+  #d. Example (sample) test datasets (one with the attributes, and one with the actual
+  #value of expensive for each person) will be provided. However, a much larger
+  #dataset will be used to test/evaluate your model. You will not get this larger test
+  #data set – it will be part of the evaluation (how your model works on the new data).
+
+```
+
+
+
+
+1. Loading the file in a dataframe
+```{r}
+library(tidyverse)
+df_hmo<-data.frame(read_csv('hmo_data_file.csv',show_col_types = FALSE))
+df_hmo_test_data <- data.frame(read_csv('test_data.csv', show_col_types = FALSE))
+df_hmo_test_data_validation <- data.frame(read_csv('test_data_validation.csv', show_col_types = FALSE))
+```
+
+2. Viewing the dataset
+```{r}
+df_hmo
+```
+
+3. Description of columns
+```{r}
+# X:	Integer,	Unique	identified	for	each	person		
+# age:	Integer,	The	age	of	the	person	(at	the	end	of	the	year).
+# location:	Categorical,	the	name	of	the	state (in	the	United	States) where	the	person	lived	(at	the	end	of	the	year)
+# location_type:	Categorical,	a	description	of	the	environment	where	the	person	lived	 (urban	or	country).
+# exercise:	Categorical,	“Not-Active”	if	the	person	did	not	exercise	regularly	during the	year,	“Active”	if	the	person	did	exercise	regularly	during	the	year.
+# smoker:	Categorical,	“yes”	if	the	person	smoked	during	the	past	year,	“no”	if	the	person	didn’t	smoke	during	the	year.
+# bmi:	Integer,	the	body	mass	index	of	the	person.	The	body	mass	index	(BMI)	is a	measure	that	uses	your	height	and	weight	to	work	out	if	your	weight	is	healthy.		
+# yearly_physical:	Categorical,	“yes”	if	the	person	had	a	well	visit	(yearly	physical)	with	their	doctor	during	the	year.	“no”	if	the	person	did	not	have	a	well	visit	with	their	doctor.
+# Hypertension: “0”	if	the	person	did	not	have	hypertension.
+# gender:	Categorical,	the	gender	of	the	person
+# education_level: Categorical,	the	amount	of	college	education	("No	College	Degree", "Bachelor",	"Master",	"PhD")
+# married: Categorical,	describing	if	the	person	is	“Married” or	“Not_Married” num_children:	Integer,	Number	of	children		
+# cost:	Integer,	the	total	cost	of	health	care	for	that	person,	during	the	past	year.
+```
+
+4. Summary of dataset
+```{r}
+summary(df_hmo)
+str(df_hmo)
+#dataset containes 7582 rows and 14 features
+```
+
+5. Data Analysis: 
+```{r}
+# questions:
+# 1. How each variable is related to expense
+# 2. How combinations of features is related to expense
+```
+5.1 Data Analysis for individual features:
+```{r}
+# feature 1 - Age
+
+# basic statistics for age
+summary(df_hmo$age)
+# mean of age
+mean(df_hmo$age)
+# null values for age
+is.null(df_hmo$age)
+# distribution of age 
+hist(df_hmo$age)
+# boxplot of age column
+boxplot(df_hmo$age)
+
+# observations for age
+ #- Min age is 18
+ #- Max age is 66
+ #- Median age is 39
+ #- 25% of the people are 26 years
+ #- 75% of the people are 51 years
+ #- 39 is the average age
+ #- no null values
+ #- Not a normal distribution
+```
+
+
+```{r}
+# feature 2 - Bmi
+
+# basic statistics for bmi
+summary(df_hmo$bmi)
+# mean of age
+mean(df_hmo$bmi)
+# null values for bmi
+length(which(is.na(df_hmo$bmi)))
+# distribution of bmi 
+hist(df_hmo$bmi)
+# boxplot of bmi column
+boxplot(df_hmo$bmi)
+
+
+# iqr for outliers after interpolation find outliers 48> outliers from graph of boxplot.
+#q3 <- q3 + 1.5*iqr
+#q1 <- q1 - 1.5*iqr
+
+# observations for bmi
+ #- Min bmi is 15.96
+ #- Max bmi is 53.13
+ #- Median bmi is 30.50
+ #- 25% of the people are having bmi 26.60
+ #- 75% of the people are having bmi 34.77
+ #- 39 is the average age - shld calculate after interpolation
+ #- 78 null values
+ #- Its a normal distribution
+ #- Lot of outliers which can be infered from the box plot
+
+```
+
+
+```{r}
+# feature 3 - Cost
+
+# basic statistics for cost
+summary(df_hmo$cost)
+# mean of cost
+mean(df_hmo$cost)
+# null values for cost
+length(which(is.na(df_hmo$cost)))
+# distribution of cost 
+hist(df_hmo$cost)
+# boxplot of cost column
+boxplot(df_hmo$cost)
+
+# outliers identification
+iqr_cost <- IQR(df_hmo$cost)
+q3 <- 4475 #from summary
+q1 <- 970 #from summary
+
+upper_fence <- q3 + 1.5*iqr_cost
+lower_fence <- q1 - 1.5*iqr_cost
+
+#upper_fence check
+length(which(df_hmo$cost >= upper_fence))
+#lower_fence check
+length(which(df_hmo$cost <= lower_fence))
+
+# observations for cost
+ #- Min cost is 2
+ #- Max cost is 55,715
+ #- Median cost is 2500
+ #- 25% of the people are having cost 970
+ #- 75% of the people are having cost 4,775
+ #- 4042 is the average cost 
+ #- 0 null values
+ #- Its a not normal distribution
+ #- Lot of outliers which can be inffered from the box plot
+    #- there are 690 values which are greater than max threshold of cost, i.e who are paying more cost
+
+```
+
+
+```{r}
+# feature 4 - Children
+
+# basic statistics for Children
+summary(df_hmo$children)
+# mean of children
+mean(df_hmo$children)
+
+# null values for children
+length(which(is.na(df_hmo$children)))
+table(is.na(df_hmo$children))
+
+# distribution of children 
+hist(df_hmo$children)
+# boxplot of cost column
+boxplot(df_hmo$children)
+
+# getting various frequencies of children
+table(df_hmo$children)
+
+# percentages of frequencies
+out_0 <- 3259/nrow(df_hmo)
+out_0 <- out_0*100
+out_0
+
+out_1 <- 1772/nrow(df_hmo)
+out_1 <- out_1*100
+out_1
+
+out_2 <- 1367/nrow(df_hmo)
+out_2 <- out_2*100
+out_2
+
+out_3 <- 942/nrow(df_hmo)
+out_3 <- out_3*100
+out_3
+
+out_4 <- 130/nrow(df_hmo)
+out_4 <- out_4*100
+out_4
+
+out_5 <- 112/nrow(df_hmo)
+out_5 <- out_5*100
+out_5
+
+# observations for cost
+ #- Min Childrens is 0
+ #- Max Childrens is 5
+ #- Median Children is 1
+ #- 25% of the people are having children 0
+ #- 75% of the people are having Children 2
+ #- 0 null values
+ #- Its not a normal distribution
+ #- No outliers
+ #- There are 3259 people with 0 children - 43%
+ #- There are 1772 people with 1 children - 23%
+ #- There are 1367 people with 2 children - 18%
+ #- There are 942 people with 3 children - 12%
+ #- There are 130 people with 4 children - 1.7%
+ #- There are 112 people with 5 children - 1.4%
+ 
+```
+
+```{r}
+# feature 5 - Smoker
+
+# null values for smoker
+length(which(is.na(df_hmo$smoker)))
+table(is.na(df_hmo$smoker))
+
+# getting various frequencies of smoker
+table(df_hmo$smoker)
+
+# getting the statistic of frequencies
+out_non_smokers <- (6103/nrow(df_hmo))*100
+out_non_smokers
+out_smokers <- (1479/nrow(df_hmo))*100
+out_smokers
+
+# observations for Smoker
+ # - there are 6103 non smokers (80%) and 1479 smokers (20%)
+ # - no null values
+ 
+```
+
+```{r}
+# feature 6 - Location
+
+# null values for Location
+length(which(is.na(df_hmo$location)))
+
+# getting various frequencies of location
+table(df_hmo$location)
+
+# getting the statistic of frequencies
+out_connecticut <- (611/nrow(df_hmo))*100
+out_connecticut
+out_maryland <- (747/nrow(df_hmo))*100
+out_maryland
+out_massachusetts <- (465/nrow(df_hmo))*100
+out_massachusetts
+out_new_jersey <- (498/nrow(df_hmo))*100
+out_new_jersey
+out_new_york <- (547/nrow(df_hmo))*100
+out_new_york
+out_penn_state <- (4010/nrow(df_hmo))*100
+out_penn_state
+out_rhode_island <- (704/nrow(df_hmo))*100
+out_rhode_island
+
+# observations for Location
+ # - there are 611 people from connecticut - 8%
+ # - there are 747 perople from maryland  - 10%
+ # - there are 465 people from massachusetts - 6%
+ # - there are 498 perople from new-jersey - 6.5%
+ # - there are 547 people from newyork - 7.2%
+ # - there are 4010 people from penn state - 52.8%
+ # - there are 704 people from rhode island - 9.2%
+ # - there are 0 null values in location 
+```
+
+```{r}
+# feature 7 - Location_type
+
+# null values for Location_type
+length(which(is.na(df_hmo$location_type)))
+table(is.na(df_hmo$location_type))
+
+# getting various frequencies of location_type
+table(df_hmo$location_type)
+
+# getting the statistics of frequencies
+out_country <- (1903/nrow(df_hmo))*100
+out_country
+
+out_urban <- (5679/nrow(df_hmo))*100
+out_urban
+
+# observations for Location_type
+ # - There are two types Country and Urban with frequencies 1903 (25%) and 5679 (75%).
+ # - Most of the people are from urban places
+ # - There are no null values
+```
+
+```{r}
+# feature 8 - Education Level
+
+# null values for Education level
+length(which(is.na(df_hmo$education_level)))
+table(is.na(df_hmo$education_level))
+
+# getting various frequencies of Education level
+table(df_hmo$education_level)
+
+# getting the statistic of the frequencies
+out_bachelors <- (4578/nrow(df_hmo))*100
+out_bachelors
+
+out_masters <- (1533/nrow(df_hmo))*100
+out_masters
+
+out_no_college_degree <- (759/nrow(df_hmo))*100
+out_connecticut
+
+out_phd <- (712/nrow(df_hmo))*100
+out_phd
+
+# observations for Education Level
+ # - There are no null values
+ # - There are 4 types Education levels 
+ # - Bachelors completed with people - 4578 - 60%
+ # - Masters completed people - 1533 - 20%
+ # - No college degree people are 759 - 8%
+ # - Phd degree people are 712 - 9.3%
+
+```
+
+```{r}
+# feature 9 - yearly_physical
+
+# null values for yearly physical
+length(which(is.na(df_hmo$yearly_physical)))
+table(is.na(df_hmo$yearly_physical))
+
+# getting various frequencies of yearly physical
+table(df_hmo$yearly_physical)
+
+# getting the statistic of frequencies
+out_no_medical <- (5699/nrow(df_hmo))*100
+out_no_medical
+out_medical_visit <- (1883/nrow(df_hmo))*100
+out_medical_visit
+
+# observations for Yearly physical
+ # - There  are 5699 people with no medical visits in a year (75%)
+ # - There are 1883 people with medical visits in a year (25%)
+ # - No null values
+
+```
+
+```{r}
+# feature 10 - exercise
+
+# null values for exercise
+length(which(is.na(df_hmo$exercise)))
+
+# getting various frequencies exercise
+table(df_hmo$exercise)
+
+out_exercise <- (5694/nrow(df_hmo))*100
+out_exercise
+
+out_no_exercise <- (1888/nrow(df_hmo))*100
+out_no_exercise
+
+# observations for exercise
+ # - There  are 1888 active people who exercise - 75%
+ # - There are 5694 people who dont exercise - 25%
+ # - No null values
+```
+
+```{r}
+# feature 11 - married
+
+# null values for married
+length(which(is.na(df_hmo$married)))
+table(is.na(df_hmo$married))
+
+# getting various frequencies for married
+table(df_hmo$married)
+
+# getting the statistic of frequencies
+out_married <- (5060/nrow(df_hmo))*100
+out_married
+
+out_not_married <- (2522/nrow(df_hmo))*100
+out_not_married 
+
+# observations for married
+ # - There  are 5060  people who are married - 66%
+ # - There are 2522 people who are not  married - 33%
+ # - No null values
+
+```
+
+```{r}
+# feature 12 - Hypertension
+
+# null values for Hypertension 
+length(which(is.na(df_hmo$hypertension)))
+table(is.na(df_hmo$hypertension))
+
+# getting various frequencies for Hypertension
+table(df_hmo$hypertension)
+
+out_hypertension <- (5998/nrow(df_hmo))*100
+out_exercise
+
+out_no_hypertension <- (1504/nrow(df_hmo))*100
+out_no_hypertension
+
+# observations for hypertension
+ # - There  are 5998  people who are not having hypertension 75%
+ # - There are 1504 people who are having  hypertension 20%
+ # - 80 null values
+```
+
+
+
+
+```{r}
+# feature 13 - Gender
+
+# null values for Gender 
+length(which(is.na(df_hmo$gender)))
+
+# getting various frequencies for Gender
+table(df_hmo$gender)
+
+out_male <- (3920/nrow(df_hmo))*100
+out_male
+
+out_no_female <- (3662/nrow(df_hmo))*100
+out_no_female
+
+# observations for Gender
+ # - Equal proportions of male and female can be observed here (almost 50%)
+ # - No null values
+```
+
+
+4.2 Data analysis for multiple features
+```{r}
+# 4.2.1 Age Vs Cost 
+# using scatter plot to understand age and cost relation
+
+plot(df_hmo$age, df_hmo$cost, main="Age VS Cost",
+     xlab="Age of the person ", ylab="Cost ", pch=19)
+
+# Observation
+  # - 1. No relation between age and cost
+```
+
+```{r}
+# 4.2.2 Bmi Vs Cost 
+# using scatter plot to understand bmi and cost relation
+
+plot(df_hmo$bmi, df_hmo$cost, main="Bmi VS Cost",
+     xlab="Bmi of the person ", ylab="Cost ", pch=19)
+
+# Observation
+  # - 1. No relation between bmi and cost
+```
+
+```{r}
+# 4.2.3 Children Vs Cost 
+# using scatter plot to understand Children and Cost relation
+
+
+plot(df_hmo$children, df_hmo$cost, main="Children VS Cost",
+     xlab="Children ", ylab="Cost ", pch=19)
+
+
+# Observation
+  # - 1. No relation between Children and cost as we can see having 5 children some are paying less and having 0 children some are paying more
+```
+
+```{r}
+# 4.2.4 Smoker Vs Cost 
+# using Jitter plot to understand Smoker and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=smoker, y= cost, color=smoker)) +
+        geom_jitter()
+
+# Observation
+  # - 1. Some sort of pattern can be seen here, Some people who are smokers are paying more cost but in the same way, there are some people who are smoking and paying less cost as we can see  from the graph below, non smokers are paying near to 15k dollars and few more than that amount probably due to some other factors.
+
+```
+
+```{r}
+# 4.2.4 Location Vs Cost 
+# using Jitter plot to understand Location and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=location, y= cost, color=location)) +
+        geom_jitter()
+
+# Observations
+  # - 1. Given the equal population of Connecticut, Maryland, Massachusetts, NewJersey, and Rhode island the distributions of prices paid by them are amlost the same, so there is not meaningfull relation from this
+ # - 2. Pennstate has largest population base but even here the due to more people the distribution looks very similar to rest of the states.
+```
+
+```{r}
+# 4.2.5 Location type Vs Cost 
+# using Jitter plot to understand Location type and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=location_type, y= cost, color=location_type)) +
+        geom_jitter()
+
+# Observations
+  # - 1. Given the fact that 75% are from urban places the prices of the cost doesn't change much if we observe the plot below we can clearly see that only some of the people in urban are paying more cost since the population is more in urban. 
+ # - 2. Costs are almost the same for urban and country types. 
+```
+
+```{r}
+# 4.2.6 Education type Vs Cost 
+# using Jitter plot to understand Education level and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=education_level, y= cost, color=education_level)) +
+        geom_jitter()
+
+# Observations
+  # - 1. Interestingly we can observe that Bachelor's level education people are paying more cost 
+  # - 2. Master's, No-College degree, Phd's are paying less cost.
+  # - 3. It can be , most of the people in penstate are bachelor's? 
+
+```
+
+```{r}
+# 4.2.7 Yearly physical Vs Cost 
+# using Jitter plot to understand yearly physical  and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=yearly_physical, y= cost, color=yearly_physical)) +
+        geom_jitter()
+
+# Observations
+  # - 1. Interestingly we can observe that people who are not having doctor visits are paying more 
+  # - 2. Are these no doctor visits related to bachelor's?, Penstate?
+
+
+```
+```{r}
+# 4.2.8 Exercise Vs Cost 
+# using Jitter plot to understand Exercise  and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=exercise, y= cost, color=exercise)) +
+        geom_jitter()
+
+# Observations
+  # - 1. There are people who are not active in workouting their boday and paying more cost
+
+
+```
+
+```{r}
+# 4.2.9 married status Vs Cost 
+# using Jitter plot to understand married status and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=married, y= cost, color=married)) +
+        geom_jitter()
+
+# Observations
+  # - 1. Not much relation between married status and cost.
+
+
+```
+
+```{r}
+# 4.2.9 Hypertension Vs Cost 
+# using Jitter plot to understand Hypertension and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=hypertension, y= cost, color=hypertension)) +
+        geom_jitter()
+
+# Observations
+  # - 1. Not much relation between Hypertension  and cost.
+  # - 2. There are many people with no hypertension and still paying more costs.
+
+
+```
+
+```{r}
+# 4.2.9 Gender Vs Cost 
+# using Jitter plot to understand Gender and Cost relation
+
+library(ggplot2)
+ggplot(df_hmo, aes(x=gender, y= cost, color=gender)) +
+        geom_jitter()
+
+# Observations
+  # - 1. Not much relation between Hypertension  and cost.
+  # - 2. Both of the genders pay almost the same costs.
+
+
+```
+
+5. Filling in the missing values for the hmo data
+```{r}
+# for feature BMI filling the null values
+# - logic - using liner interpolation from impute ts package
+
+library(imputeTS)
+df_hmo$bmi <- (na_interpolation(df_hmo$bmi, option = "linear"))
+```
+
+```{r}
+length(which(is.na(df_hmo$bmi))) #No nulls in BMI now
+```
+
+```{r}
+# for feature Hyptertension filling the null values
+# - logic - using most observed class as a nullvalue replacer
+
+df_hmo[which(is.na(df_hmo$hypertension)),"hypertension"] = 0 
+```
+
+```{r}
+length(which(is.na(df_hmo$hypertension))) # now no nulls in hypertension
+```
+
+
+6. Removing Outliers
+```{r}
+# Here two features cost and bmi has outliers
+# - logic to remove them,,! Since our data set has 7.8k rows removing 690 of them wont be a problem. It will not bring any significant change to our modelling, omitting the rows.
+#which(df_hmo$cost >= upper_fence)
+df_hmo_removed_cost_outliers <- df_hmo[-which(df_hmo$cost >= upper_fence),]
+
+```
+
+```{r}
+df_hmo_removed_cost_outliers # outliers of cost removed
+```
+
+```{r}
+#removing bmi outliers
+summary(df_hmo_removed_cost_outliers$bmi)
+# outliers identification
+iqr_bmi <- IQR(df_hmo_removed_cost_outliers$bmi)
+q3 <- 33.99 #from summary
+q1 <- 26.18 #from summary
+
+upper_fence_bmi <- q3 + 1.5*iqr_bmi
+lower_fence_bmi <- q1 - 1.5*iqr_bmi
+
+#upper_fence check
+length(which(df_hmo_removed_cost_outliers$bmi >= upper_fence_bmi))
+#lower_fence check
+length(which(df_hmo_removed_cost_outliers$bmi <= lower_fence_bmi))
+```
+
+```{r}
+# we can notice there are 86 records that needs to be deleted
+#which(df_hmo_removed_cost_outliers$bmi >= upper_fence_bmi)
+df_hmo_removed_outliers <- df_hmo_removed_cost_outliers[-which(df_hmo_removed_cost_outliers$bmi >= upper_fence_bmi),]
+```
+
+```{r} 
+#veiwing the dataset after the removal of outliers
+which(df_hmo_removed_outliers$bmi >= upper_fence_bmi)
+# we can notice that all outliers records have been deleted
+```
+
+```{r}
+df_hmo_removed_outliers
+```
+
+
+#research understanding
+#As per 2020 records Average spending of the people for medical costs are:-
+1. NY - 14K
+2. NJ - 11.8K
+3. CN - 12.4K
+4. Pennstate - 11.6K
+5. Maryland - 10.8K
+6. Rhode Island - 11.6K
+7. Massachusetts - 12.8k
+Here the above stats are with respect to real world, We will consider the stats by analysing the dataset.
+
+```{r}
+
+#3rd quantile cost as avg threshold
+summary(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "NEW YORK"), "cost"])
+summary(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "NEW JERSEY"), "cost"])
+summary(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "CONNECTICUT"), "cost"])
+summary(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "MARYLAND"), "cost"])
+summary(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "RHODE ISLAND"), "cost"])
+summary(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "PENNSYLVANIA"), "cost"])
+summary(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "MASSACHUSETTS"), "cost"])
+
+quantile(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "NEW YORK"), "cost"], probs = c(.6, .65, .7))
+quantile(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "NEW JERSEY"), "cost"], probs = c(.6, .65, .7))
+quantile(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "CONNECTICUT"), "cost"], probs = c(.6, .65, .7))
+quantile(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "MARYLAND"), "cost"], probs = c(.6, .65, .7))
+quantile(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "RHODE ISLAND"), "cost"], probs = c(.6, .65, .7))
+quantile(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "PENNSYLVANIA"), "cost"], probs = c(.6, .65, .7))
+quantile(df_hmo_removed_outliers[which(df_hmo_removed_outliers[,"location"] == "MASSACHUSETTS"), "cost"], probs = c(.6, .65, .7))
+
+```
+
+#Formulation of ML problem: Goal is to predict the people with expensive medical costs, We can take this approach in two ways
+1. Regression Modelling of cost and Filtering the cost with respect to each state's health care cost average and categorising as expensive/non-expensive
+
+#5.1 Modelling for approach 1 
+```{r}
+df_hmo_removed_outliers$threshold = 0
+```
+
+```{r}
+df_hmo_removed_outliers[1,"threshold"]+ 1200
+```
+
+
+```{r}
+#quantile(data, probs = c(.25, .5, .75))
+#2643, 2725.5, 2760,3079,2697,2906, 2770
+#3769, 3841.5, 4007, 4411, 3800, 4160, 3968
+# applying biz rules 
+
+for (i in 1:6806) {
+  #print(df_hmo_removed_outliers[i,"location"])
+  if (df_hmo_removed_outliers[i,"location"] == "CONNECTICUT")
+    df_hmo_removed_outliers[i,"threshold"] = 2963.6
+  else if (df_hmo_removed_outliers[i,"location"] == "MARYLAND")
+    df_hmo_removed_outliers[i,"threshold"] =  3080
+  else if (df_hmo_removed_outliers[i,"location"] == "NEW JERSEY")
+    df_hmo_removed_outliers[i,"threshold"] =  3225.25
+  else if (df_hmo_removed_outliers[i,"location"] == "NEW YORK")
+    df_hmo_removed_outliers[i,"threshold"] =  3517.5
+  else if (df_hmo_removed_outliers[i,"location"] == "RHODE ISLAND")
+    df_hmo_removed_outliers[i,"threshold"] =  3102.95
+  else if (df_hmo_removed_outliers[i,"location"] == "MASSACHUSETTS")
+    df_hmo_removed_outliers[i,"threshold"] =  3451.8
+  else
+    df_hmo_removed_outliers[i,"threshold"] =  3114.0
+    }
+
+
+```
+
+
+```{r}
+df_hmo_removed_outliers
+```
+
+
+```{r}
+#using regression modelling
+
+#splitting the data into test and trainset. 
+#install.packages("lattice")
+#install.packages("caret")
+#install.packages("kernlab")
+library(tidyverse)
+library(lattice)
+library(caret)
+library(kernlab)
+library(purrr)
+
+#trainList <- createDataPartition(y=df_hmo_removed_outliers$cost,p=.80,list=FALSE)
+
+```
+
+
+```{r}
+training_data <- df_hmo_removed_outliers
+training_data
+```
+
+
+
+```{r}
+indexes_train <- training_data[,"X"]
+indexes_train
+```
+
+
+
+```{r}
+Y <- training_data[,"cost"]
+Y
+```
+
+
+```{r}
+#One-hot enccoding xtrain and xtest 
+set.seed(555)
+library(mltools)
+library(data.table)
+library(caret)
+
+#onehot for Xtrain
+newdata1 <- dummyVars(" ~ .", data = training_data)
+newdata2 <- data.frame(predict(newdata1, newdata = training_data))
+newdata2
+```
+
+
+
+```{r}
+col_names<-colnames(newdata2)
+col_names<- c("age","bmi", "children", "smokerno", "smokeryes", "locationCONNECTICUT", "locationMARYLAND", "locationMASSACHUSETTS", "locationNEW.JERSEY", "locationNEW.YORK","locationPENNSYLVANIA", "locationRHODE.ISLAND", "location_typeCountry", "location_typeUrban", "education_levelBachelor", "education_levelMaster", "education_levelNo.College.Degree","education_levelPhD", "yearly_physicalNo", "yearly_physicalYes", "exerciseActive" , "exerciseNot.Active", "marriedMarried", "marriedNot_Married", "hypertension", "genderfemale", "gendermale")
+```
+
+```{r}
+#removing X column from the train 
+training_data_removed_x <- newdata2[, col_names]
+training_data_removed_x
+```
+
+
+
+```{r}
+#standardising xtrain and xtest data
+
+training_data_removed_x$age <- scale(training_data_removed_x$age, center = TRUE, scale = TRUE)
+training_data_removed_x$bmi <- scale(training_data_removed_x$bmi, center = TRUE, scale = TRUE)
+
+```
+
+```{r}
+colnames(training_data_removed_x)
+```
+
+
+```{r}
+training_data_removed_x$cost <- Y
+#X_test_draft$cost <- Y_test
+```
+
+```{r}
+training_data_removed_x
+
+```
+
+```{r}
+predictors <- c("age", "bmi", "children", "smokerno", "smokeryes", "locationCONNECTICUT", "locationMARYLAND", "locationMASSACHUSETTS", "locationNEW.JERSEY", "locationNEW.YORK", "locationPENNSYLVANIA", "locationRHODE.ISLAND", "location_typeCountry", "location_typeUrban", "education_levelBachelor", "education_levelMaster", "education_levelNo.College.Degree", "education_levelPhD", "yearly_physicalNo", "yearly_physicalYes", "exerciseActive", "exerciseNot.Active", "marriedMarried", "marriedNot_Married", "hypertension", "genderfemale", "gendermale")
+```
+
+```{r}
+#Linear regression
+library(MASS)
+
+lm_model = lm(cost~age + bmi + children + smokerno + smokeryes + locationCONNECTICUT+locationMARYLAND+locationMASSACHUSETTS+locationNEW.JERSEY+locationNEW.YORK+locationPENNSYLVANIA+locationRHODE.ISLAND+location_typeCountry+location_typeUrban+education_levelBachelor+education_levelMaster+education_levelNo.College.Degree+education_levelPhD+yearly_physicalNo+yearly_physicalYes+exerciseActive+exerciseNot.Active+marriedMarried+marriedNot_Married+hypertension+genderfemale+gendermale , data = training_data_removed_x) #Create the linear regression
+
+summary(lm_model)
+```
+
+-Next stage is predicting for the test data
+```{r}
+#preparing data for prediction
+df_hmo_test_data
+
+# applying biz rules 
+
+for (i in 1:20) {
+  #print(df_hmo_removed_outliers[i,"location"])
+  if (df_hmo_test_data[i,"location"] == "CONNECTICUT")
+    df_hmo_test_data[i,"threshold"] = 2963.6
+  else if (df_hmo_test_data[i,"location"] == "MARYLAND")
+    df_hmo_test_data[i,"threshold"] =  3080
+  else if (df_hmo_test_data[i,"location"] == "NEW JERSEY")
+    df_hmo_test_data[i,"threshold"] =  3225.25
+  else if (df_hmo_test_data[i,"location"] == "NEW YORK")
+    df_hmo_test_data[i,"threshold"] =  3517.5
+  else if (df_hmo_test_data[i,"location"] == "RHODE ISLAND")
+    df_hmo_test_data[i,"threshold"] =  3102.95
+  else if (df_hmo_test_data[i,"location"] == "MASSACHUSETTS")
+    df_hmo_test_data[i,"threshold"] =  3451.8
+  else
+    df_hmo_test_data[i,"threshold"] =  3114.0
+}
+
+
+
+```
+
+```{r}
+df_hmo_test_data
+```
+
+```{r}
+#taking indexes out
+indexes_test <- df_hmo_test_data[,"X"]
+indexes_test
+```
+
+```{r}
+#one hot for test data
+newdata4 <- dummyVars(" ~ .", data = df_hmo_test_data)
+newdata5 <- data.frame(predict(newdata4, newdata = df_hmo_test_data))
+newdata5
+```
+
+```{r}
+newdata5$locationRHODE.ISLAND = 0
+```
+
+```{r}
+newdata5
+```
+
+```{r}
+
+col_names_test<-colnames(newdata5)
+col_names_test
+```
+
+```{r}
+col_names<- c("age","bmi", "children", "smokerno", "smokeryes", "locationCONNECTICUT", "locationMARYLAND", "locationMASSACHUSETTS", "locationNEW.JERSEY", "locationNEW.YORK","locationPENNSYLVANIA", "locationRHODE.ISLAND", "location_typeCountry", "location_typeUrban", "education_levelBachelor", "education_levelMaster", "education_levelNo.College.Degree","education_levelPhD", "yearly_physicalNo", "yearly_physicalYes", "exerciseActive" , "exerciseNot.Active", "marriedMarried", "marriedNot_Married", "hypertension", "genderfemale", "gendermale")
+```
+
+```{r}
+#removing X column from the train 
+test_data_removed_x <- newdata5[, col_names]
+test_data_removed_x
+```
+
+```{r}
+test_data_removed_x$age <- scale(test_data_removed_x$age, center = TRUE, scale = TRUE)
+test_data_removed_x$bmi <- scale(test_data_removed_x$bmi, center = TRUE, scale = TRUE)
+```
+
+```{r}
+test_data_removed_x
+test_data_removed_x_2<- test_data_removed_x
+```
+
+
+
+```{r}
+pred_results_lm <- predict(lm_model, test_data_removed_x )
+pred_results_lm
+```
+
+```{r}
+test_data_removed_x_2$pred_lm <- pred_results_lm
+test_data_removed_x_2$threshold <- df_hmo_test_data$threshold
+test_data_removed_x_2$expensive_lm = 0
+
+for (i in 1:20) {
+  if (test_data_removed_x_2[i,"pred_lm"] < test_data_removed_x_2[i,"threshold"])
+    test_data_removed_x_2[i,"expensive_lm"] = 0
+  else
+    test_data_removed_x_2[i,"expensive_lm"] = 1
+}
+
+test_data_removed_x_2$id = indexes_test
+
+
+for (i in 1:20) {
+  if (df_hmo_test_data_validation[i,"expensive"] == TRUE)
+    df_hmo_test_data_validation[i,"expensive"] = 1
+  else
+    df_hmo_test_data_validation[i,"expensive"] = 0
+}
+
+
+confusionMatrix(as.factor(test_data_removed_x_2$expensive_lm) ,as.factor(df_hmo_test_data_validation$expensive))
+
+```
+```{r}
+# Association Rules
+library(arules)
+library(arulesViz)
+hmo<-df_hmo
+hmo$expensive<-ifelse(hmo$cost>=4775,1,0)
+hmo_new <- data.frame(X=as.factor(hmo$X),
+                      children=as.factor(hmo$children),
+                      smoker=as.factor(hmo$smoker),
+                      location=as.factor(hmo$location),
+                      location_type=as.factor(hmo$location_type),
+                      education_level=as.factor(hmo$education_level),
+                      yearly_physical=as.factor(hmo$yearly_physical),
+                      exercise=as.factor(hmo$exercise),
+                      married=as.factor(hmo$married),
+                      hypertension=as.factor(hmo$hypertension),
+                      gender=as.factor(hmo$gender),
+                      expensive=as.factor(hmo$expensive)
+)
+hmoX <- as(hmo_new, "transactions") 
+#itemFrequency(hmoX)
+itemFrequencyPlot(hmoX,topN=20)
+inspect(hmoX[1:10]) 
+
+ 
+
+
+ruleset <- apriori(hmoX,
+                   parameter = list(support = 0.05,confidence = 0.83),
+                   control=list(verbose=F),
+ appearance=list(default="lhs",rhs=("expensive=1")))
+summary(ruleset)
+inspectDT(ruleset)
+```
+```{r}
+#Map
+File1<-df_hmo
+File1$region <- tolower(File1$location)
+file2 <- File1 %>% filter(File1$cost<40000)
+us <- map_data("state")
+mapandfile <- merge(file2,us,by="region")
+mapandfile <- mapandfile %>% arrange(order)
+map2 <- ggplot(mapandfile, aes(map_id=location)) + aes(x=long, y=lat, group=group)+
+      geom_polygon(aes(fill=cost))+scale_fill_viridis_c(option="D")+
+      coord_fixed(ratio = 1.5) +
+      scale_y_continuous(expand = c(0,0))
+    map2
+```
+
+
+```{r}
+#tree
+
+library(rpart)
+
+model_tree <- rpart(cost~age + bmi + children + smokerno + smokeryes + locationCONNECTICUT+locationMARYLAND+locationMASSACHUSETTS+locationNEW.JERSEY+locationNEW.YORK+locationPENNSYLVANIA+locationRHODE.ISLAND+location_typeCountry+location_typeUrban+education_levelBachelor+education_levelMaster+education_levelNo.College.Degree+education_levelPhD+yearly_physicalNo+yearly_physicalYes+exerciseActive+exerciseNot.Active+marriedMarried+marriedNot_Married+hypertension+genderfemale+gendermale ,method="anova", data = training_data_removed_x)
+
+
+
+plot(model_tree, uniform = TRUE,
+          main = " Cost prediction Decision 
+                 Tree using Regression")
+text(model_tree, use.n = TRUE, cex = .7)
+print(model_tree)
+```
+
+
+```{r}
+pred_results_tree <- predict(model_tree, test_data_removed_x, method = "anova")
+pred_results_tree
+```
+
+
+```{r}
+test_data_removed_x_2$pred_tree <- pred_results_tree
+test_data_removed_x_2$expensive_tree = 0
+
+for (i in 1:20) {
+  if (test_data_removed_x_2[i,"pred_tree"] < test_data_removed_x_2[i,"threshold"])
+    test_data_removed_x_2[i,"expensive_tree"] = 0
+  else
+    test_data_removed_x_2[i,"expensive_tree"] = 1
+}
+
+
+confusionMatrix(as.factor(test_data_removed_x_2$expensive_tree) ,as.factor(df_hmo_test_data_validation$expensive))
+```
+
+
+```{r}
+
+
+
+
+for (i in 1:20) {
+  if (df_hmo_test_data_validation[i,"expensive"] == TRUE)
+    df_hmo_test_data_validation[i,"expensive"] = 1
+  else
+    df_hmo_test_data_validation[i,"expensive"] = 0
+}
+
+
+```
+
+```{r}
+df_hmo_test_data_validation
+```
+
+```{r}
+#SVM
+library(kernlab)
+library(caret)
+File1<-df_hmo
+File1$highcost <- as.factor(File1$cost >= 4775)
+set.seed(110)
+trainList <- createDataPartition(y=File1$highcost,p=.80,list=FALSE)
+trainset <- File1[trainList, ]
+testSet <- File1[-trainList, ]
+
+svmFile1 <- ksvm(highcost ~age+bmi+smoker+hypertension+exercise+yearly_physical+education_level,data=trainset, C=5, cross=3, prob.model=TRUE)
+svmFile1
+predict1<-predict(svmFile1,testSet)
+confusionMatrix(predict1,testSet$highcost)
+```
