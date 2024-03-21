@@ -40,5 +40,7 @@ Dataset consists of various variables including binary and numerical values. Fol
 * SVM is a supervised machine learning model with an accuracy rate of 86.81% and rpart is an unsupervised machine learning model with an accuracy of 50%. 
 * Based on the results we selected the model which is having highest accuracy and sensitivity.
 
+![Alt text](<img width="809" alt="EX-1" src="https://github.com/tankasaliharshita/Healthcare_Cost_Analysis_Data_Analytics/assets/158988940/def44d2c-4dcd-4434-94ed-1ae8a78f7d90">)
+
 
 
