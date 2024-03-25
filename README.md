@@ -50,15 +50,19 @@ Dataset consists of various variables including binary and numerical values. Fol
 
 <img width="814" alt="EX-2" src="https://github.com/tankasaliharshita/Healthcare_Cost_Analysis_Data_Analytics/assets/158988940/98994b57-c9a3-4972-bb1f-00a10419b39e">
 
-**3. Bar Plot of Smokers vs Age**
+**3. Bar Plot of Education Level vs Cost**
 
 <img width="812" alt="EX-3" src="https://github.com/tankasaliharshita/Healthcare_Cost_Analysis_Data_Analytics/assets/158988940/8e4f511d-6ba1-41d9-8276-0f335be40447">
 
-**4. Map showing which state is paying more Healthcare Cost**
+**4. Bar plot of Smokers vs Age**
+
+![image](https://github.com/tankasaliharshita/Healthcare_Cost_Analysis_Data_Analytics/assets/158988940/eb3d5707-70ff-44c5-a518-4292b1a7f18d)
+
+**5. Map showing which state is paying more Healthcare Cost**
 
 <img width="587" alt="EX-4" src="https://github.com/tankasaliharshita/Healthcare_Cost_Analysis_Data_Analytics/assets/158988940/d5896152-ae84-4e12-b892-7f94e9b7006c">
 
-**5. Overview of Shiny Website for User**
+**6. Overview of Shiny Website for User**
 
 <img width="960" alt="EX-5" src="https://github.com/tankasaliharshita/Healthcare_Cost_Analysis_Data_Analytics/assets/158988940/81ee4844-d03b-4a80-96ba-43b4d7cbcd58">
 
