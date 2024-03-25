@@ -11,8 +11,8 @@ Master's project with a team of 4 - the goal is to analyze the healthcare cost o
 
 **Various Phases in Analysis:**
 
-* Loading the data with appropriate libraries and Understanding the data
-* Data Cleaning and xplore data by using statistical methods and visualization
+* Loading the data with appropriate libraries and understanding the data
+* Data Cleaning and explore data by using statistical methods and visualization
 * To generate different prediction models and compare the model results to find the best model
 * Create Shiny App for the user with the best predictive model
 * Conclusion - Actionable Insights
